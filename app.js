@@ -1045,15 +1045,25 @@ function ServicesScreen({ goTo, onBack }) {
 /* =========================================================
    PROFILE SCREEN
    ========================================================= */
-function ProfileScreen({ balance, goTo }) {
+function ProfileScreen({ balance, goTo, session, onLogout }) {
+  const user = session?.user;
+  const meta = user?.user_metadata || {};
+  const displayName = meta.full_name || meta.name || user?.email?.split('@')[0] || 'Pengguna';
+  const initials = displayName.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+  const avatarUrl = meta.avatar_url || meta.picture;
+
   return (
     <div className="screen">
       <div className="topbar"><div className="page-title" style={{ fontSize: 17 }}>Akun Saya</div><div /></div>
       <div className="profile-head">
-        <div className="profile-avatar">BS</div>
+        {avatarUrl ? (
+          <img src={avatarUrl} alt={displayName} style={{ width: 58, height: 58, borderRadius: 18, objectFit: 'cover', flexShrink: 0 }} />
+        ) : (
+          <div className="profile-avatar">{initials}</div>
+        )}
         <div>
-          <div className="profile-name">Budi Santoso</div>
-          <div className="profile-phone">0812-3456-7890 · budi.s@email.com</div>
+          <div className="profile-name">{displayName}</div>
+          <div className="profile-phone">{user?.email}</div>
         </div>
       </div>
 
@@ -1080,7 +1090,10 @@ function ProfileScreen({ balance, goTo }) {
         <button className="menu-row"><div className="mi"><I.shield /></div><span className="mt">Keamanan & PIN</span><div className="mc"><I.chevronRight /></div></button>
         <button className="menu-row"><div className="mi"><I.gift /></div><span className="mt">Kode Referral</span><div className="mc"><I.chevronRight /></div></button>
         <button className="menu-row"><div className="mi"><I.headset /></div><span className="mt">Bantuan & Pusat Panduan</span><div className="mc"><I.chevronRight /></div></button>
-        <button className="menu-row" style={{ borderBottom: 'none' }}><div className="mi" style={{ color: 'var(--red)' }}><I.logout /></div><span className="mt" style={{ color: 'var(--red)' }}>Keluar</span></button>
+        <button className="menu-row" style={{ borderBottom: 'none' }} onClick={onLogout}>
+          <div className="mi" style={{ color: 'var(--red)' }}><I.logout /></div>
+          <span className="mt" style={{ color: 'var(--red)' }}>Keluar</span>
+        </button>
       </div>
     </div>
   );
@@ -1141,16 +1154,160 @@ function BottomNav({ active, goTo }) {
 /* =========================================================
    ROOT APP
    ========================================================= */
+/* =========================================================
+   SUPABASE HELPERS
+   ========================================================= */
+const sb = window.supabaseClient;
+
+async function fetchProfile(userId) {
+  const { data, error } = await sb.from('profiles').select('*').eq('id', userId).single();
+  if (error) {
+    console.error('Gagal ambil profile:', error.message);
+    return null;
+  }
+  return data;
+}
+
+async function fetchTransactions(userId) {
+  const { data, error } = await sb
+    .from('transactions')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(50);
+  if (error) {
+    console.error('Gagal ambil transaksi:', error.message);
+    return [];
+  }
+  return data.map((t) => ({
+    id: t.id,
+    cat: t.category,
+    title: t.title,
+    sub: t.destination,
+    amount: Number(t.amount),
+    status: t.status,
+    method: t.payment_method,
+    date: new Date(t.created_at).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+  }));
+}
+
+async function updateBalance(userId, newBalance) {
+  const { error } = await sb.from('profiles').update({ balance: newBalance }).eq('id', userId);
+  if (error) console.error('Gagal update saldo:', error.message);
+}
+
+async function insertTransaction(userId, payload, status) {
+  const { data, error } = await sb
+    .from('transactions')
+    .insert({
+      user_id: userId,
+      category: payload.cat,
+      title: payload.title,
+      destination: payload.sub,
+      amount: payload.amount,
+      status,
+      payment_method: payload.method || 'Saldo Isikuy',
+    })
+    .select()
+    .single();
+  if (error) {
+    console.error('Gagal simpan transaksi:', error.message);
+    return null;
+  }
+  return data;
+}
+
+/* =========================================================
+   LOGIN SCREEN
+   ========================================================= */
+function LoginScreen({ loading }) {
+  const handleGoogleLogin = async () => {
+    const { error } = await sb.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.href },
+    });
+    if (error) alert('Gagal login: ' + error.message);
+  };
+
+  return (
+    <div className="screen" style={{ alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '0 28px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, textAlign: 'center' }}>
+        <div className="brand-mark" style={{ width: 64, height: 64, borderRadius: 18, fontSize: 26 }}>IK</div>
+        <div>
+          <div className="brand-name" style={{ fontSize: 24 }}>Isi<span>kuy</span></div>
+          <p style={{ color: 'var(--text-dim)', fontSize: 13.5, marginTop: 8, maxWidth: 280 }}>
+            Masuk untuk mulai isi pulsa, kuota, token listrik, dan top up favoritmu.
+          </p>
+        </div>
+        {loading ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-dim)', fontSize: 13 }}>
+            <div className="shimmer-line" style={{ width: 120 }} /> Memuat...
+          </div>
+        ) : (
+          <button
+            onClick={handleGoogleLogin}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10, background: '#fff', color: '#1F1F1F',
+              padding: '13px 22px', borderRadius: 14, fontWeight: 600, fontSize: 14.5, marginTop: 8,
+              boxShadow: '0 8px 24px -8px rgba(0,0,0,0.4)',
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18">
+              <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84c-.21 1.13-.85 2.09-1.81 2.73v2.27h2.92c1.71-1.57 2.69-3.88 2.69-6.64z" />
+              <path fill="#34A853" d="M9 18c2.43 0 4.47-.81 5.96-2.18l-2.92-2.27c-.81.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.71H.96v2.33C2.44 15.98 5.48 18 9 18z" />
+              <path fill="#FBBC05" d="M3.97 10.7c-.18-.54-.28-1.11-.28-1.7s.1-1.16.28-1.7V4.97H.96A8.97 8.97 0 0 0 0 9c0 1.45.35 2.83.96 4.03l3.01-2.33z" />
+              <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.97l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z" />
+            </svg>
+            Masuk dengan Google
+          </button>
+        )}
+        <p style={{ color: 'var(--text-faint)', fontSize: 11, marginTop: 4, maxWidth: 260 }}>
+          Dengan masuk, kamu menyetujui penyimpanan data transaksi untuk keperluan riwayat akun.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [screen, setScreen] = useState('home');
   const [activeTab, setActiveTab] = useState('home');
   const [catId, setCatId] = useState(null);
-  const [balance, setBalance] = useState(1250000);
+  const [balance, setBalance] = useState(0);
   const [balanceVisible, setBalanceVisible] = useState(true);
-  const [history, setHistory] = useState(initialHistory);
+  const [history, setHistory] = useState([]);
   const [receiptTrx, setReceiptTrx] = useState(null);
   const [toast, showToast] = useToast();
   const [navStack, setNavStack] = useState(['home']);
+
+  const [session, setSession] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(false);
+
+  // Cek status login saat pertama kali app dibuka, dan dengarkan perubahan login/logout
+  useEffect(() => {
+    sb.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setAuthLoading(false);
+    });
+    const { data: listener } = sb.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+    });
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  // Setelah login berhasil, ambil profile (saldo) dan riwayat transaksi dari database
+  useEffect(() => {
+    if (!session) return;
+    setDataLoading(true);
+    (async () => {
+      const profile = await fetchProfile(session.user.id);
+      if (profile) setBalance(Number(profile.balance));
+      const trx = await fetchTransactions(session.user.id);
+      setHistory(trx);
+      setDataLoading(false);
+    })();
+  }, [session]);
 
   const goTo = (target, payload) => {
     if (target === 'category') setCatId(payload);
@@ -1171,22 +1328,53 @@ function App() {
     window.scrollTo(0, 0);
   };
 
-  const handleCheckout = (payload) => {
-    const trxId = 'TRX' + uid();
-    const date = nowStr();
+  const handleLogout = async () => {
+    await sb.auth.signOut();
+    setBalance(0);
+    setHistory([]);
+    setScreen('home');
+    setActiveTab('home');
+    setNavStack(['home']);
+  };
+
+  const handleCheckout = async (payload) => {
+    if (!session) return;
+    const userId = session.user.id;
     // simulasi proses: kemungkinan kecil gagal untuk realisme, mayoritas sukses
     const roll = Math.random();
     const status = roll > 0.93 ? 'failed' : 'success';
 
-    const trx = { id: trxId, date, status, ...payload };
+    showToast('Memproses transaksi...');
+    const saved = await insertTransaction(userId, payload, status);
+
+    if (!saved) {
+      showToast('Gagal menyimpan transaksi, coba lagi', 'error');
+      return;
+    }
+
+    const trx = {
+      id: saved.id,
+      cat: payload.cat,
+      title: payload.title,
+      sub: payload.sub,
+      amount: payload.amount,
+      status,
+      method: payload.method,
+      date: nowStr(),
+    };
 
     setHistory((h) => [trx, ...h]);
 
     if (status === 'success') {
+      let newBalance = balance;
       if (payload.isTopup) {
-        setBalance((b) => b + payload.topupValue);
+        newBalance = balance + payload.topupValue;
       } else if (payload.method === 'Saldo Isikuy') {
-        setBalance((b) => b - payload.amount);
+        newBalance = balance - payload.amount;
+      }
+      if (newBalance !== balance) {
+        setBalance(newBalance);
+        await updateBalance(userId, newBalance);
       }
       showToast('Transaksi berhasil diproses');
     } else {
@@ -1194,7 +1382,6 @@ function App() {
     }
 
     setReceiptTrx(trx);
-    // balik ke home setelah checkout supaya nav-stack tidak menumpuk form
     setNavStack(['home']);
     setScreen('home');
     setActiveTab('home');
@@ -1211,7 +1398,7 @@ function App() {
       case 'history':
         return <HistoryScreen history={history} onBack={() => goTo('home')} onOpenTrx={setReceiptTrx} />;
       case 'profile':
-        return <ProfileScreen balance={balance} goTo={goTo} />;
+        return <ProfileScreen balance={balance} goTo={goTo} session={session} onLogout={handleLogout} />;
       case 'topupSaldo':
         return <TopUpSaldoScreen onBack={goBack} onCheckout={handleCheckout} />;
       case 'notif':
@@ -1220,6 +1407,27 @@ function App() {
         return <HomeScreen balance={balance} balanceVisible={balanceVisible} setBalanceVisible={setBalanceVisible} goTo={goTo} history={history} />;
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="screen" style={{ alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+        <div className="shimmer-line" style={{ width: 140 }} />
+      </div>
+    );
+  }
+
+  if (!session) {
+    return <LoginScreen loading={false} />;
+  }
+
+  if (dataLoading) {
+    return (
+      <div className="screen" style={{ alignItems: 'center', justifyContent: 'center', minHeight: '100vh', gap: 10 }}>
+        <div className="shimmer-line" style={{ width: 160 }} />
+        <p style={{ color: 'var(--text-dim)', fontSize: 12.5 }}>Memuat data akun kamu...</p>
+      </div>
+    );
+  }
 
   return (
     <>
