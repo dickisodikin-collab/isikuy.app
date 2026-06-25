@@ -538,10 +538,18 @@ a{color: inherit; text-decoration: none;}
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" onerror="showFallback('React')"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" onerror="showFallback('React DOM')"></script>
 <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js" onerror="showFallback('Babel')"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js" onerror="showFallback('Supabase')"></script>
+<script>
+  // ===== KONFIGURASI SUPABASE =====
+  // Project URL & Publishable key didapat dari Supabase Dashboard > Settings > API Keys
+  window.SUPABASE_URL = 'https://zxkyvmsnimdxvwlboqut.supabase.co';
+  window.SUPABASE_KEY = 'sb_publishable_W4NVEU5EVy6IW3cw3w2QYQ_IDFQn3rY';
+  window.supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
+</script>
 <script>
   window.addEventListener('load', function () {
-    if (typeof React === 'undefined' || typeof ReactDOM === 'undefined' || typeof Babel === 'undefined') {
-      showFallback('React/ReactDOM/Babel (cek koneksi internet)');
+    if (typeof React === 'undefined' || typeof ReactDOM === 'undefined' || typeof Babel === 'undefined' || typeof supabase === 'undefined') {
+      showFallback('React/ReactDOM/Babel/Supabase (cek koneksi internet)');
       return;
     }
     fetch('app.js')
