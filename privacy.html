@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kebijakan Privasi — Isikuy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg: #0B0F19;
+  --surface: #141B2C;
+  --surface-2: #1C2438;
+  --border: #2A3350;
+  --mint: #16D8A3;
+  --text: #F4F6FB;
+  --text-dim: #8B94A8;
+  --text-faint: #5C6480;
+  --display: 'Plus Jakarta Sans', sans-serif;
+  --body: 'Inter', sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--body);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap{ max-width: 680px; margin: 0 auto; padding: 48px 24px 80px; }
+.brand{ display:flex; align-items:center; gap:10px; margin-bottom: 32px; }
+.brand-mark{
+  width: 36px; height:36px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--mint), #0FA37D);
+  display:flex; align-items:center; justify-content:center;
+  font-family: var(--display); font-weight:800; font-size: 16px; color: #07241B;
+}
+.brand-name{ font-family: var(--display); font-weight: 700; font-size: 17px; }
+.brand-name span{ color: var(--mint); }
+h1{ font-family: var(--display); font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px; }
+.updated{ color: var(--text-faint); font-size: 13px; margin-bottom: 36px; }
+h2{ font-family: var(--display); font-size: 17px; font-weight: 700; margin: 32px 0 12px; color: var(--mint); }
+p{ color: var(--text-dim); font-size: 14.5px; margin-bottom: 12px; }
+ul{ color: var(--text-dim); font-size: 14.5px; margin: 0 0 12px 20px; }
+li{ margin-bottom: 6px; }
+strong{ color: var(--text); font-weight: 600; }
+.card{
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  padding: 16px 18px; margin: 16px 0; font-size: 13.5px; color: var(--text-dim);
+}
+a{ color: var(--mint); text-decoration: none; }
+a:hover{ text-decoration: underline; }
+.footer-nav{ margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-faint); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">
+    <div class="brand-mark">IK</div>
+    <div class="brand-name">Isi<span>kuy</span></div>
+  </div>
+
+  <h1>Kebijakan Privasi</h1>
+  <p class="updated">Terakhir diperbarui: 25 Juni 2026</p>
+
+  <p>Isikuy adalah aplikasi simulasi layanan isi pulsa, kuota, token listrik, top up e-wallet, dan top up game yang dibuat untuk keperluan pembelajaran. Halaman ini menjelaskan data apa yang kami kumpulkan dan bagaimana data tersebut digunakan.</p>
+
+  <div class="card">
+    <strong>Catatan penting:</strong> Isikuy adalah proyek belajar (non-komersial) dan belum terhubung ke payment gateway atau provider PPOB sungguhan. Tidak ada transaksi uang asli yang terjadi di aplikasi ini.
+  </div>
+
+  <h2>Data yang Kami Kumpulkan</h2>
+  <p>Saat kamu masuk menggunakan Google Sign-In, kami menerima dan menyimpan informasi berikut dari akun Google kamu:</p>
+  <ul>
+    <li>Nama lengkap</li>
+    <li>Alamat email</li>
+    <li>Foto profil (jika tersedia)</li>
+  </ul>
+  <p>Kami juga menyimpan data yang kamu buat sendiri di dalam aplikasi, yaitu:</p>
+  <ul>
+    <li>Saldo simulasi dalam aplikasi</li>
+    <li>Riwayat transaksi simulasi (jenis layanan, nominal, status, waktu)</li>
+  </ul>
+
+  <h2>Bagaimana Data Digunakan</h2>
+  <p>Data yang dikumpulkan digunakan semata-mata untuk:</p>
+  <ul>
+    <li>Mengenali akun kamu saat masuk ke aplikasi</li>
+    <li>Menampilkan nama dan foto profil di halaman akun</li>
+    <li>Menyimpan saldo dan riwayat transaksi simulasi agar tetap ada saat kamu masuk kembali</li>
+  </ul>
+  <p>Kami <strong>tidak</strong> menjual, menyewakan, atau membagikan data kamu ke pihak ketiga manapun untuk tujuan pemasaran.</p>
+
+  <h2>Penyimpanan Data</h2>
+  <p>Data disimpan menggunakan layanan database pihak ketiga (Supabase). Setiap akun hanya dapat mengakses datanya sendiri, dilindungi dengan mekanisme keamanan tingkat baris data (Row Level Security).</p>
+
+  <h2>Berbagi Data dengan Pihak Ketiga</h2>
+  <p>Kami menggunakan layanan berikut untuk menjalankan aplikasi ini:</p>
+  <ul>
+    <li><strong>Google Sign-In</strong> — untuk proses autentikasi/login</li>
+    <li><strong>Supabase</strong> — untuk penyimpanan database</li>
+  </ul>
+  <p>Kedua layanan ini memiliki kebijakan privasi masing-masing yang mengatur bagaimana mereka memproses data atas nama kami.</p>
+
+  <h2>Hak Kamu</h2>
+  <p>Kamu dapat meminta penghapusan akun dan seluruh data terkait kapan saja dengan menghubungi kami melalui kontak di bawah.</p>
+
+  <h2>Perubahan Kebijakan</h2>
+  <p>Kebijakan ini dapat diperbarui dari waktu ke waktu. Perubahan akan ditampilkan di halaman ini dengan tanggal pembaruan terbaru.</p>
+
+  <h2>Kontak</h2>
+  <p>Jika ada pertanyaan mengenai kebijakan privasi ini, silakan hubungi melalui email yang tercantum pada profil developer di Google Cloud Console aplikasi ini.</p>
+
+  <div class="footer-nav">
+    <a href="index.html">← Kembali ke Isikuy</a> &nbsp;·&nbsp; <a href="terms.html">Syarat & Ketentuan</a>
+  </div>
+</div>
+</body>
+</html>
